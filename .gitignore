@@ -19,10 +19,7 @@ pids
 # Dependency directories
 node_modules/
 
-# Production build outputs
-dist/
-dist-ssr/
-build/
+
 
 # Local env files
 .env
