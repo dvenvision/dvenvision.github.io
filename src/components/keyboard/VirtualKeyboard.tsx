@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { ANSI_KEYBOARD_ROWS, findKeyDetails, FINGER_CONFIGS, FingerId } from '@/lib/fingerMap';
+import { ANSI_KEYBOARD_ROWS, findKeyDetails, FingerId } from '@/lib/fingerMap';
 import { Keycap } from './Keycap';
 import { HandOverlay } from './HandOverlay';
 
@@ -100,23 +100,14 @@ export const VirtualKeyboard = React.memo<VirtualKeyboardProps>(function Virtual
           )}
         </div>
 
-      {/* Bottom Subtle Status Pill */}
-      <div className="relative z-10 mt-3 flex items-center justify-between w-full px-2 text-[11px] text-muted-foreground font-medium">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: FINGER_CONFIGS[targetFinger].color }} />
-          <span>
-            Use <strong className="text-foreground">{FINGER_CONFIGS[targetFinger].name}</strong> for '{targetChar === ' ' ? 'Space' : targetChar}'
-          </span>
-          {needsShift && (
-            <span className="text-rose-500 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full">
-              Hold {requiredShiftCode === 'ShiftLeft' ? 'Left' : 'Right'} Shift
+        {/* Minimal Shift Indicator only when Shift is needed */}
+        {needsShift && (
+          <div className="relative z-10 mt-2 flex items-center justify-center w-full">
+            <span className="text-[11px] text-rose-500 font-bold bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+              {requiredShiftCode === 'ShiftLeft' ? 'Left Shift' : 'Right Shift'}
             </span>
-          )}
-        </div>
-        <span className="hidden sm:inline-block text-[10px] uppercase font-mono tracking-wider">
-          ANSI 60% Layout
-        </span>
-      </div>
+          </div>
+        )}
       </div>
     </div>
   );

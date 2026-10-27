@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { RotateCcw, ArrowRight, Award, MoreHorizontal } from 'lucide-react';
+import { RotateCcw, ArrowRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TypingMetrics } from '@/hooks/useTypingEngine';
 
@@ -52,15 +52,12 @@ export const TypingCard = React.memo<TypingCardProps>(function TypingCard({
 
   return (
     <div className="relative w-full max-w-4xl mx-auto rounded-3xl bg-card border border-border/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.3)] transition-all">
-      {/* Top Floating Instruction Pill Anchored Directly to the Card (Matching img2) */}
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-5 py-1.5 rounded-full bg-card border border-border shadow-sm text-xs sm:text-sm font-semibold text-foreground/85 select-none whitespace-nowrap">
-        <span>{topPrompt || 'Rest your fingers on A S D F J K L ;, then start typing.'}</span>
-      </div>
-
-      {/* Three subtle dots on the top-right corner of the card (Matching img2) */}
-      <div className="absolute top-4 right-5 text-muted-foreground/50 select-none">
-        <MoreHorizontal className="w-5 h-5" />
-      </div>
+      {/* Top Floating Info Pill (shown only when relevant) */}
+      {topPrompt && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-1 rounded-full bg-card border border-border shadow-sm text-xs font-semibold text-foreground/85 select-none whitespace-nowrap">
+          <span>{topPrompt}</span>
+        </div>
+      )}
 
       {/* Monospaced Text Container (Matching img2 typography & spacing) */}
       <div
@@ -71,13 +68,36 @@ export const TypingCard = React.memo<TypingCardProps>(function TypingCard({
         {wordTokens.map((token, tokenIdx) => {
           const isWhitespaceToken = /^\s+$/.test(token.text);
 
-          // If the token is a newline, render an explicit line break with optional ↵ glyph
+          // If the token is a newline, render an explicit line break with active cursor support
           if (token.text.includes('\n')) {
             return (
               <span key={tokenIdx} className="w-full flex items-center justify-center my-1 select-none">
-                <span className="text-xs text-muted-foreground/40 font-mono font-bold px-2 py-0.5 rounded">
-                  ↵
-                </span>
+                {token.text.split('').map((char, charOffset) => {
+                  const globalIndex = token.startIndex + charOffset;
+                  const isTyped = globalIndex < cursorIndex;
+                  const isCurrent = globalIndex === cursorIndex;
+                  const isError = errorIndices.has(globalIndex);
+
+                  if (char !== '\n') return null;
+
+                  return (
+                    <span
+                      key={charOffset}
+                      className={cn(
+                        'relative inline-flex items-center gap-1 text-xs font-mono font-bold px-2.5 py-0.5 rounded transition-all duration-75',
+                        isTyped && !isError && 'text-muted-foreground/60 bg-secondary/30',
+                        isError && 'bg-rose-500/20 text-rose-500 underline decoration-rose-500',
+                        !isTyped && !isCurrent && 'text-muted-foreground/30 bg-secondary/15',
+                        isCurrent && 'text-primary bg-primary/10 ring-2 ring-primary/40 font-black'
+                      )}
+                    >
+                      {isCurrent && (
+                        <span className="absolute -left-[2px] top-1 bottom-1 w-[2.5px] bg-primary animate-cursor rounded-full shadow-[0_0_8px_rgba(79,70,229,0.9)]" />
+                      )}
+                      <span>↵ Enter</span>
+                    </span>
+                  );
+                })}
               </span>
             );
           }

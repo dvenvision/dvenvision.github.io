@@ -19,6 +19,7 @@ import {
 } from '@/lib/wikiStories';
 
 import { LeftRail } from '@/components/layout/LeftRail';
+import { normalizeTypingText } from '@/lib/utils';
 import { RightSidebar } from '@/components/layout/RightSidebar';
 import { FloatingControls } from '@/components/layout/FloatingControls';
 import { TypingCard } from '@/components/typing/TypingCard';
@@ -27,7 +28,6 @@ import { MascotTip } from '@/components/typing/MascotTip';
 import { VirtualKeyboard } from '@/components/keyboard/VirtualKeyboard';
 import { CustomTextInput } from '@/components/typing/CustomTextInput';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, ScrollText } from 'lucide-react';
 
 export default function App() {
   const {
@@ -131,6 +131,15 @@ export default function App() {
     );
   }, [wikiStories, activeWikiStoryId]);
 
+  // Synchronize document theme class on mount and change
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   // Fullscreen event listener
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -153,17 +162,17 @@ export default function App() {
 
   // Determine current target text based on active mode
   const targetText = useMemo(() => {
+    let raw = '';
     if (mode === 'vocab') {
-      return activeOxfordWord.sentence;
+      raw = activeOxfordWord.sentence;
+    } else if (mode === 'custom') {
+      raw = customText || activeWikiStory.extract;
+    } else if (mode === 'everyday') {
+      raw = EVERYDAY_MESSAGES_LESSONS[everydayIndex].text;
+    } else {
+      raw = 'Practice makes progress. Consistent 10-finger typing develops lifelong muscle memory.';
     }
-    if (mode === 'custom') {
-      if (customText) return customText;
-      return activeWikiStory.extract;
-    }
-    if (mode === 'everyday') {
-      return EVERYDAY_MESSAGES_LESSONS[everydayIndex].text;
-    }
-    return 'Practice makes progress. Consistent 10-finger typing develops lifelong muscle memory.';
+    return normalizeTypingText(raw);
   }, [mode, activeOxfordWord.sentence, customText, activeWikiStory.extract, everydayIndex]);
 
   // Audio callbacks
@@ -191,16 +200,21 @@ export default function App() {
         markWordCompleted(activeOxfordWord.id);
         setCompletedWordIds((prev) => new Set(prev).add(activeOxfordWord.id));
 
-        // Seamless rapid vocabulary flow: directly advance to next word/phrase with 0 popup interruption!
-        const currentIdx = currentOxfordList.findIndex((w) => w.id === activeOxfordWordId);
-        const nextIdx = (currentIdx + 1) % currentOxfordList.length;
-        if (currentOxfordList[nextIdx]) {
-          setActiveOxfordWordId(currentOxfordList[nextIdx].id);
+        // Seamless rapid vocabulary flow: directly advance to next word/phrase respecting letter filter
+        const filteredList =
+          selectedLetter === 'ALL'
+            ? currentOxfordList
+            : currentOxfordList.filter((w) => w.letter === selectedLetter);
+        const activeList = filteredList.length > 0 ? filteredList : currentOxfordList;
+        const currentIdx = activeList.findIndex((w) => w.id === activeOxfordWordId);
+        const nextIdx = (currentIdx + 1) % activeList.length;
+        if (activeList[nextIdx]) {
+          setActiveOxfordWordId(activeList[nextIdx].id);
         }
         resetEngineRef.current();
       }
     },
-    [mode, activeOxfordWord.id, currentOxfordList, activeOxfordWordId, recordBestWpm]
+    [mode, activeOxfordWord.id, currentOxfordList, activeOxfordWordId, selectedLetter, recordBestWpm]
   );
 
   // Typing Engine
@@ -227,10 +241,16 @@ export default function App() {
   // Advancing to next exercise
   const handleNextExercise = useCallback(() => {
     if (mode === 'vocab') {
-      // Natural Sequential Sync: Advance to the next word in the active Oxford list
-      const currentIdx = currentOxfordList.findIndex((w) => w.id === activeOxfordWordId);
-      const nextIdx = (currentIdx + 1) % currentOxfordList.length;
-      setActiveOxfordWordId(currentOxfordList[nextIdx].id);
+      const filteredList =
+        selectedLetter === 'ALL'
+          ? currentOxfordList
+          : currentOxfordList.filter((w) => w.letter === selectedLetter);
+      const activeList = filteredList.length > 0 ? filteredList : currentOxfordList;
+      const currentIdx = activeList.findIndex((w) => w.id === activeOxfordWordId);
+      const nextIdx = (currentIdx + 1) % activeList.length;
+      if (activeList[nextIdx]) {
+        setActiveOxfordWordId(activeList[nextIdx].id);
+      }
     } else if (mode === 'custom') {
       const currentStoryIdx = wikiStories.findIndex((s) => s.id === activeWikiStoryId);
       const nextStoryIdx = (currentStoryIdx + 1) % wikiStories.length;
@@ -244,12 +264,33 @@ export default function App() {
     mode,
     currentOxfordList,
     activeOxfordWordId,
+    selectedLetter,
     wikiStories,
     activeWikiStoryId,
     setCustomText,
     everydayIndex,
     reset,
   ]);
+
+  const handleSelectLetter = useCallback(
+    (letter: string) => {
+      setSelectedLetter(letter);
+      if (mode === 'vocab') {
+        if (letter === 'ALL') {
+          if (currentOxfordList.length > 0) {
+            setActiveOxfordWordId(currentOxfordList[0].id);
+          }
+        } else {
+          const firstMatching = currentOxfordList.find((w) => w.letter === letter);
+          if (firstMatching) {
+            setActiveOxfordWordId(firstMatching.id);
+          }
+        }
+        reset();
+      }
+    },
+    [mode, currentOxfordList, reset]
+  );
 
   // Selection handlers
   const handleSelectOxfordWord = useCallback(
@@ -294,41 +335,38 @@ export default function App() {
     [setCustomText, setMode, reset]
   );
 
-  // Top Notch Prompt Header
+  // Top Notch Header (clean minimal context)
   const topPrompt = useMemo(() => {
     if (mode === 'vocab') {
       return (
-        <div className="flex items-center gap-2 truncate">
-          <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="font-extrabold capitalize text-foreground">
+        <div className="flex items-center gap-2">
+          <span className="font-bold capitalize text-foreground">
             {activeOxfordWord.word}
           </span>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-bold">
             {activeOxfordWord.cefr}
           </Badge>
-          <span className="text-muted-foreground truncate hidden sm:inline">
-            — {activeOxfordWord.definition}
-          </span>
         </div>
       );
     }
     if (mode === 'custom') {
       return (
-        <div className="flex items-center gap-2 truncate">
-          <ScrollText className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span className="font-bold text-foreground">{activeWikiStory.title}</span>
-          <span className="text-muted-foreground truncate hidden sm:inline">
-            — {activeWikiStory.description}
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-foreground truncate max-w-xs">
+            {customText ? 'Custom Practice' : activeWikiStory.title}
           </span>
         </div>
       );
     }
-    return (
-      <span>
-        Rest your fingers on A S D F J K L ;, then type the first '{currentTargetChar}' to begin.
-      </span>
-    );
-  }, [mode, activeOxfordWord, activeWikiStory, currentTargetChar]);
+    if (mode === 'everyday') {
+      return (
+        <span className="font-semibold text-foreground">
+          {EVERYDAY_MESSAGES_LESSONS[everydayIndex]?.title}
+        </span>
+      );
+    }
+    return null;
+  }, [mode, activeOxfordWord, customText, activeWikiStory, everydayIndex]);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-background text-foreground selection:bg-primary/20">
@@ -363,7 +401,7 @@ export default function App() {
         onSelectOxfordWord={handleSelectOxfordWord}
         completedWordIds={completedWordIds}
         selectedLetter={selectedLetter}
-        onSelectLetter={setSelectedLetter}
+        onSelectLetter={handleSelectLetter}
         oxfordCollection={oxfordCollection}
         onSetOxfordCollection={handleSetOxfordCollection}
         isLoadingOxford={isLoadingOxford}

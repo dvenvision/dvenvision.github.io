@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { User, CheckCircle2, ChevronRight, ChevronLeft, BookOpen, ScrollText, MessageSquare } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, BookOpen, ScrollText, MessageSquare } from 'lucide-react';
 import { OxfordEntry, ALL_ALPHABET_LETTERS, OxfordCollectionType } from '@/lib/oxfordDataset';
 import { WikiStory } from '@/lib/wikiStories';
 import { Badge } from '@/components/ui/badge';
@@ -70,17 +70,9 @@ export const LeftRail = React.memo<LeftRailProps>(function LeftRail({
           <img src="/chopper-logo.png" alt="KeyHaki" className="w-full h-full object-contain drop-shadow" />
         </div>
         {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="font-black text-base text-foreground leading-tight flex items-center gap-1.5 tracking-tight">
-              KeyHaki
-              <span className="text-[9px] px-1.5 py-0.5 text-pink-400 font-bold bg-pink-500/10 border border-pink-500/20 rounded-full">
-                One Piece
-              </span>
-            </span>
-            <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-              Touch Typing & Vocab
-            </span>
-          </div>
+          <span className="font-black text-base text-foreground leading-tight tracking-tight">
+            KeyHaki
+          </span>
         )}
       </div>
 
@@ -137,7 +129,7 @@ export const LeftRail = React.memo<LeftRailProps>(function LeftRail({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Oxford 5000 Words
+              Words
             </button>
             <button
               onClick={() => onSetOxfordCollection('phrases')}
@@ -148,20 +140,12 @@ export const LeftRail = React.memo<LeftRailProps>(function LeftRail({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Phrase List (750)
+              Phrases
             </button>
           </div>
 
           {/* Progress Tracker Card */}
           <div className="p-2 rounded-xl bg-secondary/40 border border-border/80">
-            <div className="flex items-center justify-between text-xs font-semibold mb-1">
-              <span className="text-muted-foreground">
-                {oxfordCollection === 'words' ? 'Oxford 5000' : 'Oxford Phrases'}
-              </span>
-              <span className="font-mono text-primary font-bold">
-                {displayedOxfordWords.length} words listed
-              </span>
-            </div>
             <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
               <div
                 style={{ width: `${progressPercent}%` }}
@@ -173,7 +157,7 @@ export const LeftRail = React.memo<LeftRailProps>(function LeftRail({
           {/* A-Z Quick Jump Bar */}
           <div>
             <div className="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground mb-1 px-1">
-              <span>Filter by Letter:</span>
+              <span>A–Z</span>
               <span className="text-primary font-mono">{selectedLetter}</span>
             </div>
             <div className="flex items-center gap-1 overflow-x-auto pb-1.5 scrollbar-thin">
@@ -324,21 +308,6 @@ export const LeftRail = React.memo<LeftRailProps>(function LeftRail({
       >
         {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
-
-      {/* Bottom Typist Profile */}
-      <div className="pt-3 border-t border-border mt-auto">
-        <div className={cn('flex items-center gap-2.5', isCollapsed ? 'justify-center' : 'px-1')}>
-          <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-muted-foreground">
-            <User className="w-3.5 h-3.5" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-foreground">Typist Profile</span>
-              <span className="text-[10px] text-muted-foreground font-mono">Zero Login Session</span>
-            </div>
-          )}
-        </div>
-      </div>
     </aside>
   );
 });

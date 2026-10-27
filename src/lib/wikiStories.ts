@@ -1,4 +1,7 @@
+import { normalizeTypingText } from './utils';
+
 export interface WikiStory {
+
   id: string;
   title: string;
   description: string;
@@ -117,7 +120,7 @@ export async function fetchWikiStory(topicQuery: string): Promise<WikiFetchResul
           id: `wiki-${directData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
           title: directData.title,
           description: directData.description || 'Wikipedia Encyclopedia Article',
-          extract: directData.extract,
+          extract: normalizeTypingText(directData.extract),
           thumbnailUrl: directData.thumbnail?.source,
           category: 'Custom',
         };
@@ -179,7 +182,7 @@ export async function fetchWikiStory(topicQuery: string): Promise<WikiFetchResul
       id: `wiki-${summaryData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       title: summaryData.title,
       description: summaryData.description || 'Wikipedia Encyclopedia Article',
-      extract: summaryData.extract,
+      extract: normalizeTypingText(summaryData.extract),
       thumbnailUrl: summaryData.thumbnail?.source,
       category: 'Custom',
     };

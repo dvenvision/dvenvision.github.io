@@ -7,8 +7,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  Info,
   ExternalLink,
   Volume2,
 } from 'lucide-react';
@@ -127,29 +125,6 @@ export const RightSidebar = React.memo<RightSidebarProps>(function RightSidebar(
             )}
           </div>
 
-          {/* Active Contextual Sentence */}
-          <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              Practice Typing Sentence
-            </span>
-            <p className="text-xs text-foreground/85 leading-relaxed font-mono">
-              "{activeOxfordWord.sentence}"
-            </p>
-          </div>
-        </div>
-
-        {/* Word Nuance & Usage Guidance */}
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
-            <Info className="w-4 h-4 shrink-0" />
-            <span>Pedagogy Tip</span>
-          </div>
-          <p className="text-xs text-foreground/80 leading-relaxed">
-            Touch typing requires cognitive fluency: as your eyes recognize{' '}
-            <strong className="text-foreground capitalize">{activeOxfordWord.word}</strong>,
-            your fingers fire the letter sequences as a single automated motor chunk.
-          </p>
         </div>
 
         {/* Quick Navigation Between Words */}

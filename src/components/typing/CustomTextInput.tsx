@@ -3,7 +3,7 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription } from '@/componen
 import { Button } from '@/components/ui/button';
 import { FileText, ScrollText, ArrowRight, Search } from 'lucide-react';
 import { fetchWikiStory, WikiStory } from '@/lib/wikiStories';
-import { cn } from '@/lib/utils';
+import { cn, normalizeTypingText } from '@/lib/utils';
 
 interface CustomTextInputProps {
   open: boolean;
@@ -46,7 +46,7 @@ export function CustomTextInput({
   const handleApplyPaste = () => {
     const trimmed = pasteText.trim();
     if (!trimmed) return;
-    onApplyCustomText(trimmed);
+    onApplyCustomText(normalizeTypingText(trimmed));
     onOpenChange(false);
     setPasteText('');
   };

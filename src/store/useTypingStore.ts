@@ -20,13 +20,20 @@ interface TypingStoreState {
 }
 
 export const useTypingStore = create<TypingStoreState>((set) => {
-  // Read initial from localStorage if available
-    const storedTheme =
+  const storedTheme =
     typeof window !== 'undefined'
       ? (localStorage.getItem('keyhaki-theme') as 'dark' | 'light') ||
         (localStorage.getItem('typecat-theme') as 'dark' | 'light') ||
         'dark'
       : 'dark';
+
+  if (typeof window !== 'undefined') {
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
 
   const storedBestWpm =
     typeof window !== 'undefined'

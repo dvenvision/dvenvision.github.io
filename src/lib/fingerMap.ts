@@ -227,7 +227,14 @@ export function findKeyDetails(char: string): {
   requiredShiftCode: 'ShiftLeft' | 'ShiftRight' | null;
   targetFinger: FingerId;
 } {
-  if (char === ' ') {
+  let searchChar = char;
+  if (/['’‘`´ʼ]/.test(char)) searchChar = "'";
+  else if (/["“”«»]/.test(char)) searchChar = '"';
+  else if (/[-—–−]/.test(char)) searchChar = '-';
+  else if (/[\s\u00A0\u2009]/.test(char) && char !== '\n') searchChar = ' ';
+  else if (char === '\n') searchChar = 'Enter';
+
+  if (searchChar === ' ') {
     return {
       keyDef: { code: 'Space', primary: 'Space', finger: 'right_thumb' },
       needsShift: false,
@@ -238,7 +245,7 @@ export function findKeyDetails(char: string): {
 
   for (const row of ANSI_KEYBOARD_ROWS) {
     for (const key of row) {
-      if (key.primary === char) {
+      if (key.code === 'Enter' && (char === '\n' || searchChar === 'Enter')) {
         return {
           keyDef: key,
           needsShift: false,
@@ -246,7 +253,16 @@ export function findKeyDetails(char: string): {
           targetFinger: key.finger,
         };
       }
-      if (key.shifted === char) {
+      if (key.primary === searchChar) {
+
+        return {
+          keyDef: key,
+          needsShift: false,
+          requiredShiftCode: null,
+          targetFinger: key.finger,
+        };
+      }
+      if (key.shifted === searchChar) {
         // OPPOSITE HAND SHIFT RULE:
         // If target key is on Left Hand, use ShiftRight (Right Pinky).
         // If target key is on Right Hand, use ShiftLeft (Left Pinky).

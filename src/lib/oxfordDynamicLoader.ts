@@ -46,14 +46,18 @@ export function markWordCompleted(id: string): void {
   }
 }
 
+import { normalizeTypingText } from './utils';
+
 // FIX: Clean authentic Oxford dictionary example sentences — AI/2026-10-24
 // WHY: Zero words added or repeated by code; official Oxford example or official word directly.
 function cleanOxfordSentence(rawExample: string | undefined, word: string): string {
   if (!rawExample || rawExample.trim().length === 0) {
-    return word.trim();
+    return normalizeTypingText(word.trim());
   }
 
-  const clean = rawExample.trim().replace(/^['"`]|['"`]$/g, '');
+  // Normalize all typographical characters (smart quotes, em-dashes, non-breaking spaces)
+  const normalized = normalizeTypingText(rawExample);
+  const clean = normalized.replace(/^['"`]|['"`]$/g, '');
 
   // Extract authentic sentence if preceded by collocation/grammatical tag (e.g. "abandon somebody, The baby...")
   const parts = clean.split(/[,;]\s+/);
@@ -72,13 +76,13 @@ function cleanOxfordSentence(rawExample: string | undefined, word: string): stri
 // FIX: Official Oxford Phrase with zero repetitions or added code — AI/2026-10-24
 // WHY: User requested no repeated words unless official; phrase appears exactly as Oxford published.
 function formatPhrasePractice(rawPhrase: string): string {
-  const clean = rawPhrase
+  const clean = normalizeTypingText(rawPhrase)
     .replace(/\.{3}|…/g, '')
     .trim()
     .replace(/\bsth\b/g, 'something')
     .replace(/\bsb\b/g, 'someone');
 
-  return clean || rawPhrase.trim();
+  return clean || normalizeTypingText(rawPhrase.trim());
 }
 
 // Parse raw CSV line safely
